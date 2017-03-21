@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010 Christopher A Longo
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project name="DecryptHLS" default="compile" basedir=".">
+    <property name="src.dir" value="src" />
+    <property name="lib.dir" value="lib" />
+    <property name="out.dir" value="out" />
+    <property name="classes.dir" value="${out.dir}/classes" />
+    <property name="dist.dir" value="dist" />
+    <property name="scripts.dir" value="scripts" />
+    <property name="jar.name" value="download-hls.jar" />
+
+    <path id="lib.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="init">
+        <tstamp />
+        <mkdir dir="${classes.dir}" />
+    </target>
+
+    <target name="compile" depends="init" description="Compiles the project.">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}">
+            <classpath refid="lib.classpath" />
+        </javac>
+    </target>
+
+    <target name="distribute" depends="compile" description="Creates distribution.">
+        <mkdir dir="${dist.dir}" />
+        <jar destfile="${dist.dir}/${jar.name}">
+            <fileset dir="${classes.dir}" />
+            <manifest>
+                <attribute name="Main-Class" value="net.chrislongo.hls.Main" />
+                <attribute name="Class-Path" value="lib/bcprov-ext-jdk16-145.jar lib/commons-cli-1.2.jar" />
+            </manifest>
+        </jar>
+        <copy todir="${dist.dir}">
+            <fileset dir="${basedir}">
+                <include name="${lib.dir}/bcprov-ext-jdk16-145.jar" />
+                <include name="${lib.dir}/commons-cli-1.2.jar" />
+                <include name="*.txt" />
+            </fileset>
+        </copy>
+        <copy file="${scripts.dir}/download-hls.sh" tofile="${dist.dir}/download-hls" />
+        <chmod file="${dist.dir}/download-hls" perm="755" />
+    </target>
+
+    <target name="clean" description="Cleans the intermediate files.">
+        <delete dir="${out.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+</project>
