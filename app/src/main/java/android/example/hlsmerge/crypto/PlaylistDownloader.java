@@ -17,6 +17,9 @@
 
 package android.example.hlsmerge.crypto;
 
+import static java.sql.DriverManager.println;
+
+import android.annotation.SuppressLint;
 import android.example.hlsmerge.Utils.Log;
 import android.os.AsyncTask;
 
@@ -27,8 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 
 public class PlaylistDownloader {
+    private static final String TAG = "PlaylistDownloader";
     private URL url;
     private List<String> playlist;
     private Crypto crypto;
@@ -89,12 +94,14 @@ public class PlaylistDownloader {
 
     }
 
-    private void downloadInternal(final URL segmentUrl, final String outFile, final int currProgress,final int size) {
+    @SuppressLint("StaticFieldLeak")
+    private void downloadInternal(final URL segmentUrl, final String outFile, final int currProgress, final int size) {
         final byte[] buffer = new byte[512];
 
         new AsyncTask<Void, Integer, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
+                android.util.Log.i(TAG, "doInBackground: ");
                 InputStream is = null;
                 try {
                     is = crypto.hasKey()
@@ -102,27 +109,28 @@ public class PlaylistDownloader {
                             : segmentUrl.openStream();
 
 
-                FileOutputStream out;
+                    FileOutputStream out;
 
-                if (outFile != null) {
-                    File file = new File(outFile);
-                    out = new FileOutputStream(outFile, file.exists());
-                } else {
-                    String path = segmentUrl.getPath();
-                    int pos = path.lastIndexOf('/');
-                    out = new FileOutputStream(path.substring(++pos), false);
-                }
+                    if (outFile != null) {
+                        File file = new File(outFile);
+                        if(!file.exists()) file.createNewFile();
+                        out = new FileOutputStream(outFile, file.exists());
+                    } else {
+                        String path = segmentUrl.getPath();
+                        int pos = path.lastIndexOf('/');
+                        out = new FileOutputStream(path.substring(++pos), false);
+                    }
 
-                Log.log("Downloading segment: "+ segmentUrl);
+                    Log.log("Downloading segment: "+ segmentUrl);
 
-                int read;
+                    int read;
 
-                while ((read = is.read(buffer)) >= 0) {
-                    out.write(buffer, 0, read);
-                }
-                publishProgress(currProgress*100/size);
-                is.close();
-                out.close();
+                    while ((read = is.read(buffer)) >= 0) {
+                        out.write(buffer, 0, read);
+                    }
+                    publishProgress(currProgress*100/size);
+                    is.close();
+                    out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -152,12 +160,12 @@ public class PlaylistDownloader {
         private String key;
 
         @Override
-            protected Boolean doInBackground(String... params) {
-                BufferedReader reader = null;
+        protected Boolean doInBackground(String... params) {
+            BufferedReader reader = null;
             outfile = params[0];
             key = params[1];
-                try {
-                    reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            try {
+                reader = new BufferedReader(new InputStreamReader(url.openStream()));
 
 
                 String line;
@@ -165,6 +173,7 @@ public class PlaylistDownloader {
 
                 while ((line = reader.readLine()) != null) {
                     playlist.add(line);
+                    Log.log(line,true);
 
                     if (line.contains(BANDWIDTH))
                         isMaster = true;
@@ -190,12 +199,12 @@ public class PlaylistDownloader {
 
                 reader.close();
 
-                } catch (IOException e) {
-                    Log.log("Exception");
-                    e.printStackTrace();
-                }
-                return isMaster;
+            } catch (IOException e) {
+                Log.log("Exception");
+                e.printStackTrace();
             }
+            return isMaster;
+        }
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
