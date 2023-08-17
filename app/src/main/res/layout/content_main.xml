@@ -26,4 +26,11 @@
         android:scrollbars="vertical"
         android:text=""
         android:layout_below="@id/txt_url"/>
+    <CheckBox
+        android:text="Use new downloader"
+        android:id="@+id/cb_new_downloader"
+        android:layout_centerInParent="true"
+        android:checked="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </RelativeLayout>

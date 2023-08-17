@@ -67,6 +67,8 @@ public class PlaylistDownloader {
             String line = playlist.get(i);
             line = line.trim();
 
+
+
             if (line.startsWith(EXT_X_KEY)) {
                 crypto.updateKeyString(line);
 
